@@ -1,6 +1,7 @@
 import os
 import uuid
 from io import BytesIO
+from typing import override
 
 from api.v1.apps.common.models import TimedBaseModel
 from django.core.files import File
@@ -8,8 +9,6 @@ from django.db import models
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 from PIL import Image
-
-# from typing import override
 
 
 class Shop(TimedBaseModel):
@@ -51,10 +50,11 @@ class Shop(TimedBaseModel):
     def __str__(self):
         return self.shop_name
 
+    @override
     def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
         if self.logo:
-            instance = super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
+
             logo_path = self.logo.path
 
             logo = Image.open(logo_path)
@@ -69,4 +69,8 @@ class Shop(TimedBaseModel):
                     optimize=True,
                     format="JPEG",
                 )
-        return instance
+                logo_size = os.path.getsize(logo_path)
+
+            self.logo = logo
+        else:
+            super().save(*args, **kwargs)

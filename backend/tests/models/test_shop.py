@@ -11,7 +11,6 @@ from ..factories.shop import ShopModelFactory
 
 @pytest.mark.django_db(transaction=True)
 def test_shop_creation():
-    Shop.objects.all().delete()  # even before model creation I'm deleting all records from database
     shop = ShopModelFactory()
     assert Shop.objects.count() == 1
     assert Shop.objects.first() == shop

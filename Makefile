@@ -2,7 +2,7 @@ PM = python manage.py
 DEB = docker exec -it backend
 
 #----- backend commands -----#
-.PHONY: makemigrations migrate  runserver sqlmigrate
+.PHONY: makemigrations migrate  runserver sqlmigrate shall
 makemigrations migrate runserver sqlmigrate:
 	${DEB} ${PM} $@
 

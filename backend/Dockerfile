@@ -22,8 +22,9 @@ RUN python -m pip install --upgrade pip \
     && pip install --upgrade poetry \
     && poetry config virtualenvs.create false \
     && poetry lock --no-update \
-    && poetry install --no-root --no-interaction --no-ansi
+    && poetry install --no-root --no-interaction --no-ansi 
 
 COPY . /root 
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+RUN chmod +x /root/bash/start-celerybeat.sh
+RUN chmod +x /root/bash/start-flower.sh

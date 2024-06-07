@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "rest_framework",
     "django_countries",
+    "django_celery_results",
 ]
 
 
@@ -65,11 +66,11 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "postgres",
-        "PORT": 5432,
+        "NAME": env("NAME"),
+        "USER": env("USER"),
+        "PASSWORD": env("PASSWORD"),
+        "HOST": env("HOST"),
+        "PORT": env("PORT"),
     }
 }
 
@@ -89,7 +90,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "hy"
 
 TIME_ZONE = "Asia/Yerevan"
 
@@ -112,4 +112,15 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ]
+}
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "django-db"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+    }
 }

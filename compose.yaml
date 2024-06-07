@@ -4,6 +4,10 @@ services:
   backend:
     build: ./backend
     container_name: backend
+    command: sh -c 
+                "python manage.py makemigrations && 
+                python manage.py migrate && 
+                python manage.py runserver 0.0.0.0:8000"
     restart: always
     volumes:
       - ./backend:/root # todo: prepare to prod
@@ -11,6 +15,7 @@ services:
       - 8000:8000
     depends_on:
       - postgres
+    #   - redis
 
   postgres:
     image: postgres:latest
@@ -21,7 +26,103 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    # command: redis-server --save 60 1 --loglevel warning --requirepass <PASSWORD>
+    ports:
+      - 6379:6379
+    volumes:
+      - /path/to/local/dаta:/root/redis
+      - /path/to/local/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=my-password
+
+  celery_beat:
+    build: ./backend
+    container_name: celery_beat
+    command: sh /root/bash/start-celerybeat.sh
+    volumes:
+      - ./backend:/root # todo: prepare to prod
+    # depends_on:
+    #   - redis
+    #   - postgres
+    
+  celery-worker-1:
+    build: ./backend
+    container_name: celery_worker-1
+    command: celery -A config worker -l INFO
+    restart: always
+    volumes:
+    - ./backend:/root
+    # depends_on:
+    #   - postgres
+    #   - redis
+  
+  # flower:
+  #   # build: ./backend
+  #   image: mher/flower
+  #   command: celery -A config flower
+  #   # volumes:
+  #   #   - ./examples:/data
+  #   # ports:
+  #   #   - 5555:5555
+  #   # depends_on:
+  #   #   - celery-worker-1
+  #   #   - redis
+  
+  # flower:
+  #   image: mher/flower
+  #   command: ['flower', '--broker=redis://redis:6379', '--port=5555']
+  #   expose:
+  #     - 5555
+  #   depends_on:
+  #     - redis
+  
+  # flower:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - '5555:5555'
+  #   command: "celery -A myproject flower --address=0.0.0.0"
+  #   depends_on:
+  #     - celery
+  #   networks:
+  #     - live
+
+  # flower:
+  #   build: ./
+  #   command: celery -A tasks flower
+  #   volumes:
+  #     - ./examples:/data
+  #   working_dir: /data
+  #   ports:
+  #     - 5555:5555
+  #   environment:
+  #     CELERY_BROKER_URL: redis://redis
+  #     CELERY_RESULT_BACKEND: redis://redis
+  #   depends_on:
+  #     - worker
+  #     - redis
+
+  
+
+  flower:
+    build: ./backend
+    command: sh /root/bash/start-flower.sh
+    volumes:
+      - ./backend:/root
+    # env_file:
+    #   - ./.env/.dev-sample
+    ports:
+      - 5557:5555
+    # depends_on:
+    #   - redis
+    #   - db
+ 
 volumes:
   postgres_data:
