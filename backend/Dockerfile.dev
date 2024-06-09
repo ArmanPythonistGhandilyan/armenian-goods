@@ -1,0 +1,48 @@
+# Stage 1: Build
+FROM python:3.12.1-alpine AS builder
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
+
+WORKDIR /root
+
+COPY ./pyproject.toml ./poetry.lock /root
+
+RUN apk update && \
+    apk add --no-cache python3-dev \
+    gcc \
+    musl-dev \
+    libpq-dev
+
+RUN python -m pip install --upgrade pip \
+    && pip install --upgrade poetry \
+    && poetry config virtualenvs.create false \
+    && poetry lock --no-update \
+    && poetry install --no-root --no-interaction --no-ansi
+
+COPY . /root 
+
+RUN chmod +x /root/bash/start-celerybeat.sh
+RUN chmod +x /root/bash/start-flower.sh
+
+# Stage 2: Production
+FROM python:3.12.1-alpine
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
+
+ENV DJANGO_SUPERUSER_USERNAME=admin
+ENV DJANGO_SUPERUSER_PASSWORD=admin
+ENV DJANGO_SUPERUSER_EMAIL=admin@example.com
+
+WORKDIR /root
+
+RUN apk update && \
+    apk add --no-cache libpq
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /root /root
+

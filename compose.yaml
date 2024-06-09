@@ -15,7 +15,7 @@ services:
       - 8000:8000
     depends_on:
       - postgres
-    #   - redis
+      - redis
 
   postgres:
     image: postgres:latest
@@ -32,7 +32,6 @@ services:
     image: redis:alpine
     container_name: redis
     restart: always
-    # command: redis-server --save 60 1 --loglevel warning --requirepass <PASSWORD>
     ports:
       - 6379:6379
     volumes:
